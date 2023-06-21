@@ -1,4 +1,4 @@
-import sys
+# import libraries
 import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
@@ -14,6 +14,7 @@ from nltk.corpus import stopwords
 
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import confusion_matrix
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_multilabel_classification
@@ -22,6 +23,8 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics import classification_report
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import GridSearchCV
+
+import sys
 import pickle
 
 def load_data(database_filepath):
@@ -35,8 +38,8 @@ def load_data(database_filepath):
         cateogory_names: category names
     """
     # load data from database
-    engine = create_engine('sqlite:///' + database_filepath + '.db')
-    df = pd.read_sql_table('FigureEight_data.db',con = engine)
+    engine = create_engine('sqlite:///' + database_filepath)
+    df = pd.read_sql_table(database_filepath, con = engine)
     X = df['message']
     Y = df.iloc[:,4:]
     category_names = Y.columns
@@ -70,6 +73,18 @@ def tokenize(text):
         final_tokens.append(final_token)
     return final_tokens
 
+class TextLengthExtractor(BaseEstimator, TransformerMixin):
+    """
+    Class to add the length of text as a feature.
+    """
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, X):
+        X_length = pd.Series(X).apply(lambda x: len(x))
+        return pd.DataFrame(X_length)
+
 
 def build_model():
     """
@@ -84,8 +99,8 @@ def build_model():
                         ])
 
     parameters = {
-#                 'vect__ngram_range': [(1, 1), (1, 2)],
-#                 'tfidf__use_idf': [True, False]
+                'vect__ngram_range': [(1, 1), (1, 2)],
+                'tfidf__use_idf': [True, False]
                  }
 
     cv = GridSearchCV(pipeline, param_grid=parameters)
