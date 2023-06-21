@@ -1,7 +1,7 @@
 import sys
 import pandas as pd
 import numpy as np
-
+from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
     """
@@ -49,14 +49,20 @@ def clean_data(df):
     
     
     for column in categories:
-    # set each value to be the last character of the string
+        # set each value to be the last character of the string
         categories[column] = categories[column].str[-1:]
     
-    # convert column from string to numeric
-    categories[column] = categories[column].astype(int)
+        # convert column from string to numeric
+        categories[column] = categories[column].astype(int)
 
+    # drop non-binary values
+    categories = categories[categories['related']<2] 
+    
     # drop the original categories column from `df`
     df.drop(columns ='categories', inplace= True)
+    
+    # drop the last column to avoid multicolinearity
+    df.drop(columns=df.columns[-1],  axis=1,  inplace=True)
     
     # concatenate the original dataframe with the new `categories` dataframe
     df = pd.concat([df, categories],join='inner', axis=1)
@@ -80,20 +86,21 @@ def save_data(df, database_filename):
     
     """
     #Create a Engine Database in SQLlite
-    engine = create_engine('sqlite:///'+ database_filename + '.db')
+    engine = create_engine('sqlite:///'+ database_filename)
     
     #Transform Dataframe to Database
-    df.to_sql(database_filename, engine, index=False)
+    df.to_sql(database_filename, engine, index=False,  if_exists="replace")
     
     return
 
 
 def main():
-    if len(sys.argv) == 4:
+    if len(sys.argv) == 3:
 
-        python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
- = sys.argv[1:]
-
+        messages_filepath = 'messages.csv'
+        categories_filepath = 'categories.csv'
+        database_filepath = 'DisasterResponse.db'
+        
         print('Loading data...\n    MESSAGES: {}\n    CATEGORIES: {}'
               .format(messages_filepath, categories_filepath))
         df = load_data(messages_filepath, categories_filepath)
