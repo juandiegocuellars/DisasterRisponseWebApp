@@ -97,9 +97,7 @@ def save_data(df, database_filename):
 def main():
     if len(sys.argv) == 3:
 
-        messages_filepath = 'messages.csv'
-        categories_filepath = 'categories.csv'
-        database_filepath = 'DisasterResponse.db'
+        messages_filepath, categories_filepath, database_filepath = sys.argv[1:]
         
         print('Loading data...\n    MESSAGES: {}\n    CATEGORIES: {}'
               .format(messages_filepath, categories_filepath))
