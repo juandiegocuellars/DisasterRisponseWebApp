@@ -1,5 +1,9 @@
 # Disaster Response Pipeline Project
 
+### Introduction
+
+This project is made with Figure Eight to develop a web app where an emergency worker can input a new message and get classification results in several categories. This was possible using ETL pipelines and Machine Learning Pipelines to train a supoervised model. 
+
 ### Instructions:
 1. Run the following commands in the project's root directory to set up your database and model.
 
